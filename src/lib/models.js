@@ -3259,6 +3259,30 @@
             }
             return request(url, {
               method: 'POST',
+              responseType: 'json',
+              headers : {
+                'Content-Type' : 'application/json',
+                'Authorization' : 'Bearer ' + token
+              },
+              sendContent: JSON.stringify(content)
+            }).then(function (res) {
+              if  (!/^https?:\/\/\d+?\.media\.tumblr.com\/.*?\.(jpg|png|jpeg|gif)/.test(ps.itemUrl))
+                return Promise.resolve();
+              var json = res.response;
+              if (!json) {
+                throw new Error('failed...');
+              }
+              var product_id = json.products[0].id;
+              var material_id = json.material.id;
+              var item_variant_id = json.products[0].sampleItemVariant.id;
+              url = self.URL + 'api/v1/choices/1178';
+              content = {
+                productId: product_id,
+                itemVariantId: item_variant_id
+              };
+              return request(url, {
+                method: 'POST',
+                responseType: 'json',
               headers : {
                 'Content-Type' : 'application/json',
                 'Authorization' : 'Bearer ' + token
