@@ -3232,9 +3232,13 @@
     post : function (ps) {
       var self = this;
       var product_id, material_id, item_variant_id;
+      var fromDsbd = false;
       return Promise.resolve().then(function() {
         return self.getToken(self).then(function (token) {
           return self.getImage(ps).then(function (data) {
+            if (/^https?:\/\/.*?\.tumblr.com\//.test(ps.pageUrl)) {
+              fromDsbd = true;
+            }
             var url;
             var content;
             if (ps.type === 'photo') {
@@ -3269,7 +3273,7 @@
               },
               sendContent: JSON.stringify(content)
             }).then(function (res) {
-              if  (!/^https?:\/\/\d+?\.media\.tumblr.com\/.*?\.(jpg|png|jpeg|gif)/.test(ps.itemUrl))
+              if (!fromDsbd)
                 return Promise.resolve();
               var json = res.response;
               if (!json) {
@@ -3292,6 +3296,8 @@
                 },
                 sendContent: JSON.stringify(content)
               }).then(function (res) {
+                if (!/^https?:\/\/\d+?\.media\.tumblr.com\/.*?\.(jpg|png|jpeg|gif)/.test(ps.itemUrl))
+                  return Promise.resolve();
                 url = self.URL + 'api/v1/materials/' + material_id;
                 content = {
                   products: [
