@@ -3148,8 +3148,10 @@
 
     // アプリケーションとして登録してあります。
     // 開発時には、extension idが変わってしまうので、適宜書き換えてください。
-    client_id : '45486b20f10137be91d4dd67a989d3eb28c5effdb9dba513a166a82418ff4cb6',
-    client_secret : '25b8f7b7f371a0db6ad39e1c3eff7320e1dd8a790bd567c4c44693039e3327db',
+    // client_id : '45486b20f10137be91d4dd67a989d3eb28c5effdb9dba513a166a82418ff4cb6',
+    // client_secret : '25b8f7b7f371a0db6ad39e1c3eff7320e1dd8a790bd567c4c44693039e3327db',
+    client_id: '6fec669b67d56c9cc8af7501d68a5b7652e716760cd1e510185eae109f8864a3',
+    client_secret: 'e6c1deab340f87ae1642460d7bdb52ad07d065138cd231338493ebe5eea0f189',
     redirect_url : 'https://' + chrome.runtime.id + '.chromiumapp.org/provider_cb',
 
     authorize : function (self) {
@@ -3229,6 +3231,7 @@
 
     post : function (ps) {
       var self = this;
+      var product_id, material_id, item_variant_id;
       return Promise.resolve().then(function() {
         return self.getToken(self).then(function (token) {
           return self.getImage(ps).then(function (data) {
@@ -3244,7 +3247,7 @@
                 products: [
                   {
                     itemId: 1,
-                    exemplaryVarriantId: 1,
+                    exemplaryVariantId: 1,
                     resizeMode: 'contain',
                     published: true
                   }
@@ -3272,9 +3275,9 @@
               if (!json) {
                 throw new Error('failed...');
               }
-              var product_id = json.products[0].id;
-              var material_id = json.material.id;
-              var item_variant_id = json.products[0].sampleItemVariant.id;
+              product_id = json.products[0].id;
+              material_id = json.material.id;
+              item_variant_id = json.products[0].sampleItemVariant.id;
               url = self.URL + 'api/v1/choices/1178';
               content = {
                 productId: product_id,
@@ -3283,18 +3286,41 @@
               return request(url, {
                 method: 'POST',
                 responseType: 'json',
-              headers : {
+                headers : {
                 'Content-Type' : 'application/json',
                 'Authorization' : 'Bearer ' + token
-              },
-              sendContent: JSON.stringify(content)
-            }).catch(function(res) {
-              localStorage.suzuri_token = undefined;
+                },
+                sendContent: JSON.stringify(content)
+              }).then(function (res) {
+                url = self.URL + 'api/v1/materials/' + material_id;
+                content = {
+                  products: [
+                    {
+                      itemId: 1,
+                      published: false
+                    }
+                  ]
+                };
+                return request(url, {
+                  method: 'PUT',
+                  mode: 'raw',
+                  responseType: 'json',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization' : 'Bearer ' + token
+                  },
+                  sendContent: JSON.stringify(content)
+                }).then(function(res) {
+                  console.log(res);
+                });
+              });
             });
           });
-        });
+        }).catch(function(res) {
+          localStorage.suzuri_token = undefined;
+        });;
       });
-    },
+    }
   });
 
   function shortenUrls(text, model) {
