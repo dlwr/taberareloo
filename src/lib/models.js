@@ -3241,6 +3241,11 @@
             }
             var url;
             var content;
+            var variants = [[71,99,389,431,89,103,371,86,381,72,13,66,15,35,55,75,1,7,8,11,2,3,4,5,6,9,10,12,14,16,17,18,19,20,21,27,28,31,22,23,24,25,26,29,30,32,33,34,36,37,38,39,40,41,47,48,51,42,43,44,45,46,49,50,52,53,54,56,57,58,59,60,61,67,68,62,63,64,65,69,70,74,76,77,79,80,90,91,94,87,88,92,93,95,96,97,98,100,101,104,106,107,123,124,118,119,120,122,125,126,168,128,129,130,131,132,134,140,141,144,135,136,137,138,142,143,169,145,146,147,148,149,150,151,161,157,158,152,153,154,156,159,160,170,162,163,164,165,166,167,318,319,320,321,322,323,324,325,326,327,328,329,330,127,121,78,317,117,139,105,133,85,73,84,102,155,331,332,333,334,335,337,338,339,340,341,342,343,344,346,347,348,349,350,351,352,353,354,355,356,357,358,359,360,361,362,364,365,366,367,368,369,370,372,373,374,375,376,377,378,379,380,382,383,384,385,386,387,388,390,391,392,393,394,395,396,397,398,399,400,401,402,403,405,406,407,408,409,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,426,427,428,404,336,345,363,429,430,432,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,452,453,456,457,458,460,450,451,455,454,459], [81], [82], [83, 171, 172], [174,228,173,175,178,179,180,182,184,186,188,189,190,191,193,194,197,199,201,204,205,206,208,209,212,213,216,218,219,220,221,223,224,225,229,231,203,177,192,207,222,187,202,217,232,183,227,185,200,215,230,234,226,196,195,198,210,233,181,176,211,214,235,236,237,238,239,240,242,244,245,246,248,250,251,252,253,254,255,256,257,259,261,262,264,265,266,267,268,269,270,271,272,273,274,275,276,277,260,247,263,243,258,241,249], [278,280,292,279,281,284,285,286,288,289,290,291,295,298,299,300,302,304,306,287,294,303,464,293,282,296,301,305,283,297], [308, 307, 313, 316, 311, 312, 310, 314, 309, 315], null, [465,466,467,468,469,470,471,472,473,474,475,476,477,478,480,484,485,486,487,489,490,491,492,494,495,497,500,501,502,503,504,506,507,509,511,512,514,517,518,519,520,521,523,524,526,527,528,529,531,534,536,537,538,540,541,542,543,544,516,481,532,483,533,498,515,482,522,493,505,488,499,539,525,508,535,510,545,546,548,549,553,554,555,556,560,561,563,565,567,568,569,570,571,572,573,575,576,577,578,579,580,582,585,586,587,588,589,590,591,592,593,595,597,599,600,558,566,583,550,584,594,557,559,562,596,552,551,574]];
+            var itemId = [1,2,3,4,5,6,7,9][ Math.floor( Math.random() * 8 ) ];
+            var itemVariants = variants[itemId - 1];
+            var exemplaryVariantId = itemVariants[Math.floor(Math.random() * itemVariants.length)];
+
             if (ps.type === 'photo') {
               url = self.URL + 'api/v1/materials';
               var texture = data.binary || data;
@@ -3250,8 +3255,8 @@
                 description: ps.pageUrl,
                 products: [
                   {
-                    itemId: 1,
-                    exemplaryVariantId: 1,
+                    itemId: itemId,
+                    exemplaryItemVariantId: exemplaryVariantId,
                     resizeMode: 'contain',
                     published: true
                   }
@@ -3261,7 +3266,8 @@
               url = self.URL + 'api/v1/materials/text';
               content = {
                 text: '"'+ ps.body + '"',
-                description: ps.pageUrl
+                description: ps.pageUrl,
+                itemVariantId: itemVariants[0][Math.floor(Math.rondom() * itemVariants[0].length)]
               };
             }
             return request(url, {
@@ -3273,8 +3279,8 @@
               },
               sendContent: JSON.stringify(content)
             }).then(function (res) {
-              if (!fromDsbd)
-                return Promise.resolve();
+              // if (!fromDsbd)
+              //   return Promise.resolve();
               var json = res.response;
               if (!json) {
                 throw new Error('failed...');
@@ -3282,7 +3288,7 @@
               product_id = json.products[0].id;
               material_id = json.material.id;
               item_variant_id = json.products[0].sampleItemVariant.id;
-              url = self.URL + 'api/v1/choices/1178';
+              url = self.URL + 'api/v1/choices/3033';
               content = {
                 productId: product_id,
                 itemVariantId: item_variant_id
@@ -3295,30 +3301,6 @@
                 'Authorization' : 'Bearer ' + token
                 },
                 sendContent: JSON.stringify(content)
-              }).then(function (res) {
-                if (!/^https?:\/\/\d+?\.media\.tumblr.com\/.*?\.(jpg|png|jpeg|gif)/.test(ps.itemUrl))
-                  return Promise.resolve();
-                url = self.URL + 'api/v1/materials/' + material_id;
-                content = {
-                  products: [
-                    {
-                      itemId: 1,
-                      published: false
-                    }
-                  ]
-                };
-                return request(url, {
-                  method: 'PUT',
-                  mode: 'raw',
-                  responseType: 'json',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization' : 'Bearer ' + token
-                  },
-                  sendContent: JSON.stringify(content)
-                }).then(function(res) {
-                  console.log(res);
-                });
               });
             });
           });
