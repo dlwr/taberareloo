@@ -3267,7 +3267,7 @@
               content = {
                 text: '"'+ ps.body + '"',
                 description: ps.pageUrl,
-                itemVariantId: itemVariants[0][Math.floor(Math.rondom() * itemVariants[0].length)]
+                itemVariantId: variants[0][Math.floor(Math.random() * variants[0].length)]
               };
             }
             return request(url, {
